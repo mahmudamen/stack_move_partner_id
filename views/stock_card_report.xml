@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_stock_card_lines_header_inherit" inherit_id="stock_card_report.report_stock_card_lines_header">
+        <xpath expr="//div[hasclass('act_as_row')]" position="replace">
+                <div class="act_as_cell">Date</div>
+                <div class="act_as_cell">Reference</div>
+                <div class="act_as_cell">Vendor</div>
+                <div class="act_as_cell">Input</div>
+                <div class="act_as_cell">Output</div>
+                <div class="act_as_cell">Balance</div>
+
+        </xpath>
+        </template>
+        <template id="report_stock_card_report_base_inherit" inherit_id="stock_card_report.report_stock_card_report_base">
+            <xpath expr="//div[hasclass('page')]" position="replace">
+                        <div class="page">
+                <div class="row">
+                    <t t-set="title">Stock Card - <t t-raw="product.name" /></t>
+                    <h4 class="mt0" t-esc="title" style="text-align: center;" />
+                </div>
+                <!-- Display filters -->
+                <t t-call="stock_card_report.report_stock_card_report_filters" />
+                <!-- Display stock card table -->
+                <div class="act_as_table data_table mt4" style="width: 100%;">
+                    <!-- Display header line-->
+                    <t t-call="stock_card_report.report_stock_card_lines_header" />
+                    <!-- Display initial lines -->
+                    <t
+                        t-set="initial"
+                        t-value="o._get_initial(o.results.filtered(lambda l: l.product_id == product and l.is_initial))"
+                    />
+                    <div class="act_as_row lines">
+                        <div class="act_as_cell" />
+                        <div class="act_as_cell">
+                            Initial
+                        </div>
+                        <div class="act_as_cell" />
+                        <div class="act_as_cell" />
+                        <div class="act_as_cell" />
+                        <div class="act_as_cell right">
+                            <t t-esc="'{0:,.3f}'.format(initial)" />
+                        </div>
+                    </div>
+                    <!-- Display each lines -->
+                    <t t-set="product_balance" t-value="initial" />
+                    <t
+                        t-foreach="o.results.filtered(lambda l: l.product_id == product and not l.is_initial)"
+                        t-as="product_line"
+                    >
+                        <t
+                            t-set="product_balance"
+                            t-value="product_balance + product_line.product_in - product_line.product_out"
+                        />
+                        <t t-call="stock_card_report.report_stock_card_lines" />
+                    </t>
+                </div>
+                <p style="page-break-before:always;" />
+            </div>
+            </xpath>
+        </template>
+        <template id="report_stock_card_lines_inherit" inherit_id="stock_card_report.report_stock_card_lines">
+        <xpath expr="//div[hasclass('act_as_row')]" position="replace">
+            <div class="act_as_cell left">
+                <t t-esc="product_line.date.strftime('%Y-%m-%d')" />
+            </div>
+            <div class="act_as_cell left">
+                <t t-esc="product_line.reference" />
+            </div>
+            <div class="act_as_cell left">
+                <t t-esc="product_line.partner_id.name" />
+            </div>
+            <div class="act_as_cell right">
+                <t t-esc="'{0:,.3f}'.format(product_line.product_in)" />
+            </div>
+            <div class="act_as_cell right">
+                <t t-esc="'{0:,.3f}'.format(product_line.product_out)" />
+            </div>
+            <div class="act_as_cell right">
+                <t t-esc="'{0:,.3f}'.format(product_balance)" />
+            </div>
+        </xpath>
+        </template>
+    </data>
+</odoo>
